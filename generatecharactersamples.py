@@ -31,6 +31,7 @@ def Cleanup():
             os.unlink(file_path)
     return
 
+
 def convertToNumpy(data, target):
     num_images = target.__len__()
 
@@ -39,7 +40,7 @@ def convertToNumpy(data, target):
     _, target = np.unique(target, return_inverse=True)  # convert target to numbers
 
     data = list(map(np.array, data))
-    data = np.array(data)
+    data = np.array(data) / 255
     # data = np.reshape(data, (data.shape[0], -1))
 
     return data, target, labels

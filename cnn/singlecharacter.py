@@ -13,9 +13,10 @@ from torch.autograd import Variable
 
 from model import ConvolutionalNN
 
+
 class Args:
     def __init__(self):
-        self.batch_size = 64
+        self.batch_size = 128
         self.epochs = 10
         self.lr = 0.001
         self.momentum = 0.5
@@ -25,8 +26,8 @@ class Args:
 
 class Chardata(Dataset):
     def __init__(self, data, target, label=None, transform=None):
-        self.data_tensor = torch.from_numpy(data)
-        self.target_tensor = torch.from_numpy(target)
+        self.data_tensor = torch.from_numpy(data).type(torch.FloatTensor)
+        self.target_tensor = torch.from_numpy(target).type(torch.LongTensor)
         self.label = label
         self.transform = transform
 
@@ -44,8 +45,19 @@ class Chardata(Dataset):
         return data_sample, target_sample
 
 
-def train(data_iterator):
-    pass
+def train(epoch, data_iterator, criterion, optimizer):
+    model.train()
+    for batch_idx, (data, target) in enumerate(data_iterator):
+        data, target = Variable(data.view(data.shape[0],1,32,32)), Variable(target)
+        optimizer.zero_grad
+        output = model(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+        if batch_idx % args.log_interval == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                epoch, batch_idx * len(data), len(data_iterator.dataset),
+                100. * batch_idx / len(data_iterator), loss.data[0]))
 
 
 if __name__ == '__main__':
@@ -65,5 +77,11 @@ if __name__ == '__main__':
 
     img_dim = 32 * 32
 
+    model = ConvolutionalNN()
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    criterion = nn.CrossEntropyLoss()
+
+    for epoch in range(args.epochs):
+        train(epoch, data_loader, criterion, optimizer)
     # Save results.
     # torch.save(gen.state_dict(), 'torch_save/gen_state_dict.pth')
